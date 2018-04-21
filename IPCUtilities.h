@@ -25,7 +25,11 @@ void deallocateMessageQueue(int, const char*);
 // Get a pointer to the existing memory segment with the given ID
 void* getExistingSharedMemory(int, const char*);
 
-// Deallocate the shared memory segment witht he given ID
+// Deallocate the shared memory segment with he given ID
 void deallocateSharedMemory(int, const char*);
+
+int allocateSemaphore(int, int, int const char*);
+
+void deallocateSemaphore(int, const char*);
 
 #endif

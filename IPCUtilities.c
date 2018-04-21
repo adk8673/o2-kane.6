@@ -4,6 +4,7 @@
 // Functions which wrap function of system IPC objects for ease of use
 #include<unistd.h>
 #include<sys/ipc.h>
+#include<sys/sem.h>
 #include<sys/shm.h>
 #include<sys/msg.h>
 #include<sys/stat.h>
@@ -19,7 +20,6 @@ key_t getKey(int id)
         key = ftok(cwd, id);
         return key;
 }
-
 
 // Allocate a shared memory segment using IPC_CREAT using the passed ID to get a key value and return the shmid
 // or -1 if unsucessful
@@ -99,4 +99,21 @@ void deallocateSharedMemory(int shmid, const char* processName)
 {
 	if (shmctl(shmid, IPC_RMID, NULL) == -1)
 		writeError("Failed to deallocated shared memory for key", processName);
+}
+
+int allocateSemaphore(int id, int nsems, int const char* processName)
+{
+	const int semFlags = (0777 | IPC_CREAT);
+	int semid = 0;
+	key_t key = getKey(id);
+	if ((semid = semget(key, nsems, semFlags)) == -1)
+		writeError("Failed to allocate semaphore\n", processName);
+
+	return semid;
+}
+
+void deallocateSemaphore(int semId, const char* processName)
+{
+	if (semctl(semId, 0, IPC_RMID) == -1)
+		writeError("Failed to remove semaphore\n", processName);
 }
