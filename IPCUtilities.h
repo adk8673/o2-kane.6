@@ -5,6 +5,8 @@
 #ifndef IPCUTILITIES_H
 #define IPCUTILITIES_H
 
+#include<sys/sem.h>
+
 // This is mostly used internally to parse the passed id into a key value that should be reproducible
 // in other executables in the same directory, which can then be used to get IPC resources
 key_t getKey(int);
@@ -28,8 +30,12 @@ void* getExistingSharedMemory(int, const char*);
 // Deallocate the shared memory segment with he given ID
 void deallocateSharedMemory(int, const char*);
 
-int allocateSemaphore(int, int, int const char*);
+int allocateSemaphore(int, int, const char*);
 
 void deallocateSemaphore(int, const char*);
+
+void initializeSemaphoreToValue(int, int, int, const char *);
+
+int getExistingSemaphore(int, const char *);
 
 #endif

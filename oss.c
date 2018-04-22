@@ -24,6 +24,7 @@
 
 #define ID_SHARED_NANO_SECONDS 1
 #define ID_SHARED_SECONDS 2
+#define ID_SEM_CRITICAL 3
 #define NANO_PER_SECOND 1000000000
 
 // shmid NanoSeconds
@@ -37,6 +38,9 @@ int shmidSeconds = 0;
 
 // pointer to shared seconds
 int* seconds = NULL;
+
+// id of shared semaphore
+int semidCritical = 0;
 
 // Shared process name
 char* processName = NULL;
@@ -62,6 +66,12 @@ void executeOSS()
 {
 	*seconds = 0;
 	*nanoSeconds = 0;
+
+	createChildProcess("./user", processName);
+	sleep(10);
+
+	printf("seconds: %d, nano: %d\n", *seconds, *nanoSeconds);
+
 }
 
 void allocateSharedIPC()
@@ -81,6 +91,9 @@ void allocateSharedIPC()
 	}
 	else
 		writeError("Failed to allocated shared seconds memory\n", processName);
+
+	semidCritical = allocateSemaphore(ID_SEM_CRITICAL, 1, processName);
+	initializeSemaphoreToValue(semidCritical, 0, 1, processName);
 }
 
 void deallocateSharedIPC()
@@ -96,4 +109,7 @@ void deallocateSharedIPC()
 
 	if (shmidSeconds > 0)
 		deallocateSharedMemory(shmidSeconds, processName);
+
+	if (semidCritical > 0)
+		deallocateSemaphore(semidCritical, processName);
 }

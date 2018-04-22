@@ -3,9 +3,12 @@
 // Alex Kane 3/22/2018
 // Functions which wrap function of system IPC objects for ease of use
 #include<unistd.h>
+#include<errno.h>
+#include<stdlib.h>
 #include<sys/ipc.h>
 #include<sys/sem.h>
 #include<sys/shm.h>
+#include<string.h>
 #include<sys/msg.h>
 #include<sys/stat.h>
 #include"ErrorLogging.h"
@@ -22,7 +25,7 @@ key_t getKey(int id)
 }
 
 // Allocate a shared memory segment using IPC_CREAT using the passed ID to get a key value and return the shmid
-// or -1 if unsucessful
+// or -1 if unsuccessful
 int allocateSharedMemory(int id, int sizeInBytes, const char* processName)
 {
 	const int memFlags = (0777 | IPC_CREAT);	
@@ -101,13 +104,39 @@ void deallocateSharedMemory(int shmid, const char* processName)
 		writeError("Failed to deallocated shared memory for key", processName);
 }
 
-int allocateSemaphore(int id, int nsems, int const char* processName)
+int allocateSemaphore(int id, int nsems, const char* processName)
 {
-	const int semFlags = (0777 | IPC_CREAT);
+	const int semFlags = ( 0777 | IPC_CREAT);
 	int semid = 0;
 	key_t key = getKey(id);
 	if ((semid = semget(key, nsems, semFlags)) == -1)
 		writeError("Failed to allocate semaphore\n", processName);
+
+	return semid;
+}
+
+void initializeSemaphoreToValue(int semid, int nsem, int value, const char* processName)
+{
+	union semun {
+	    int              val;    /* Value for SETVAL */
+	    struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
+	    unsigned short  *array;  /* Array for GETALL, SETALL */
+	} arg;
+	arg.val = value;
+
+	if (semctl(semid, nsem, SETVAL, arg) == -1)
+		writeError("Failed to set semaphore value\n", processName);
+}
+
+int getExistingSemaphore(int id,  const char* processName)
+{
+	const int semFlags = (0777);
+	int semid = 0;
+	key_t key = getKey(id);
+
+	semid = semget(key, 0, semFlags);
+	if (semid == -1)
+		writeError("Failed to get existing semaphore\n", processName);
 
 	return semid;
 }
