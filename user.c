@@ -21,6 +21,7 @@
 #include"ProcessControlBlock.h"
 #include"ProcessUtilities.h"
 #include"StringUtilities.h"
+#include"BitVectorUtilities.h"
 
 #define ID_SHARED_NANO_SECONDS 1
 #define ID_SHARED_SECONDS 2
@@ -44,6 +45,10 @@ void detachIPC();
 int main(int argc, char** argv)
 {
 	processName = argv[0];
+
+	// I've added this as a failsafe - oss should have ended and deallocated at this point, killing any
+	// children, but in case they haven't, end so we don't have orphaned processes
+	setPeriodic(5);
 
 	getExistingIPC();
 

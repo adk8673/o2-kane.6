@@ -8,6 +8,8 @@
 #define PROCESS_CONTROL_BLOCK_H
 #define NUM_DIFF_RESOURCES 20
 
+#include<sys/types.h>
+
 typedef struct {
 	// Id of process - will actually be the hoare server's unix pid
 	pid_t ProcessId;
@@ -17,15 +19,6 @@ typedef struct {
 
 	// NanoSeconds process was created at
 	int CreatedAtNanoSeconds;
-	
-	// Max Resource counts
-	int MaxResource[NUM_DIFF_RESOURCES];
-
-	// Current Resource counts
-	int CurrentResource[NUM_DIFF_RESOURCES];
-
-	// Blocked on resource
-	int BlockedResource;
 
 	// Blocked at seconds
 	int BlockedAtSeconds;
@@ -35,6 +28,11 @@ typedef struct {
 
 	// Total blocked nanoseconds
 	long BlockedNanoSeconds;
+
+	// Page that needs to be loaded
+	int BlockedOnPage;
+
+	int NumberOfPages;
 } ProcessControlBlock;
 
 #endif
