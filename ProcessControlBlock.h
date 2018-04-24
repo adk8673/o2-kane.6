@@ -20,6 +20,12 @@ typedef struct {
 	// NanoSeconds process was created at
 	int CreatedAtNanoSeconds;
 
+	// Blocked until seconds
+	int BlockedUntilSeconds;
+
+	// Blocked until nanoseconds
+	int BlockedUntilNanoSeconds;
+
 	// Blocked at seconds
 	int BlockedAtSeconds;
 

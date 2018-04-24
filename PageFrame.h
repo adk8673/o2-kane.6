@@ -6,6 +6,8 @@
 typedef struct {
 	pid_t ProcessId;
 
+	int PageNumber;
+
 	int Modified;
 
 	int RecentlyAccessed;
