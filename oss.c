@@ -153,7 +153,7 @@ void executeOSS()
 	mymsg_t requestMsg, grantMsg;
 	blockedQueue = malloc(sizeof(pid_t) * MAX_PROCESSES);
 
-	while ( totalCompletedProcesses <= MAX_COMPLTETED_PROCESSES && hitMaxTime != 1 )
+	while ( totalCompletedProcesses < MAX_COMPLTETED_PROCESSES && hitMaxTime != 1 )
 	{
 		int spawnedProcess = spawnProcess(spawnSeconds, spawnNanoSeconds, semsignal, semwait);
 
@@ -172,7 +172,7 @@ void executeOSS()
 			int requestedAddress = atoi(requestMsg.mtext);
 			int requestedPage = requestedAddress / BYTE_PER_KILO;
 
-			printf("index: %d requestedAddress: %d requestedPage: %d\n", index, requestedAddress, requestedPage);
+			//printf("index: %d requestedAddress: %d requestedPage: %d\n", index, requestedAddress, requestedPage);
 
 			grantMsg.mtype = requestMsg.mtype;
 
@@ -182,7 +182,8 @@ void executeOSS()
 
 			// First check if the memory address requested is outside of accessible memory
 			if ( (requestedPage + 1) > pcb[index].NumberOfPages )
-				snprintf(grantMsg.mtext, 50, "%d", -1);
+
+				{snprintf(grantMsg.mtext, 50, "%d", -1);printf("oss over\n");}
 			else
 			{
 				// first we need to get the index of the page we are looking at in the global page table for process
@@ -193,6 +194,17 @@ void executeOSS()
 				{
 					// send message back to child and increment clock slightly
 					snprintf(grantMsg.mtext, 50, "%d", 1);
+
+					if ( pcb[index].IsWrite == 1 )
+					{
+						int i;
+						for ( i = 0; i < NUM_PAGE_FRAMES; ++i )
+						{
+							if ( pageFrames[i].ProcessId == pcb[index].ProcessId && pageFrames[i].PageNumber == pageTable[pageTableIndex].PageNumber )
+								pageFrames[i].Modified = 1;
+						}
+					}
+
 					incrementClock(10);
 				}
 				else

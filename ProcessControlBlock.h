@@ -38,6 +38,10 @@ typedef struct {
 	// Page that needs to be loaded
 	int BlockedOnPage;
 
+	// Is Write or read
+	int IsWrite;
+
+	// Total number of pages for process
 	int NumberOfPages;
 } ProcessControlBlock;
 

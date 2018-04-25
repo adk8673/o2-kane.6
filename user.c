@@ -62,6 +62,9 @@ char* processName = NULL;
 void getExistingIPC();
 void detachIPC();
 int findProcessInPcb(pid_t);
+int setMemoryAccesses();
+int shouldEnd();
+int shouldSegment();
 
 int main(int argc, char** argv)
 {
@@ -104,12 +107,29 @@ void executeUser()
 	if ( semop(semidCritical, semsignal, 1) == -1 )
 		writeError("Failed to signal for critical section exit\n", processName);
 
+	int numAccesses = setMemoryAccesses();
 	int endUser = 0;
 	while ( endUser != 1 )
 	{
-		int requestedMemoryAddress = (rand() % maxMemoryAddress) + 1;
+		int requestedMemoryAddress;
+		if ( shouldSegment() == 1 )
+			requestedMemoryAddress = maxMemoryAddress + (rand() % ADDRESS_OVERAGE);
+		else
+			requestedMemoryAddress = (rand() % maxMemoryAddress) + 1;
+
 		snprintf(requestMsg.mtext, 50, "%d", requestedMemoryAddress);
 
+		int isWrite = 0;
+		if ( rand() % MAX_PERCENT < PERCENT_WRITE )
+			isWrite = 1;
+
+		if ( semop(semidCritical, semwait, 1) == -1 )
+			writeError("Failed to wait for critical section entry\n", processName);
+
+		pcb[pcbIndex].IsWrite = isWrite;
+
+		if ( semop(semidCritical, semsignal, 1) == -1 )
+			writeError("Failed to signal for critical section exit\n", processName);
 
 		if ( msgsnd(msgIdRequest, &requestMsg, sizeof(requestMsg), 0) == -1 )
 			writeError("Failed to send request to oss\n", processName);
@@ -120,8 +140,16 @@ void executeUser()
 		int response = atoi(grantMsg.mtext);
 
 		if ( response == 1 )
-		{printf("test1\n");
-			// check for end
+		{
+			--numAccesses;
+
+			if ( numAccesses <= 0 )
+			{
+				if ( shouldEnd() == 1 )
+					endUser = 1;
+
+				numAccesses = setMemoryAccesses();
+			}
 		}
 		else if ( response == 0 )
 		{
@@ -137,15 +165,47 @@ void executeUser()
 				if ( semop(semidCritical, semsignal, 1) == -1 )
 					writeError("Failed to signal for critical section exit\n", processName);
 			}
+
+			--numAccesses;
+			if ( numAccesses <= 0 )
+			{
+				if ( shouldEnd() == 1 )
+					endUser = 1;
+
+				numAccesses = setMemoryAccesses();
+			}
 		}
 		else if ( response == -1 )
 		{
+			printf("user over\n");
 		}
-
-		endUser = 1;
 	}
 
 	printf("Ending child %d\n", getpid());
+}
+
+int shouldSegment()
+{
+	int shouldThrowSegmentationError = 0;
+
+	if ( (rand() % MAX_PERCENT) + 100000 < PERCENT_SEGMENT )
+		shouldThrowSegmentationError = 1;
+
+	return shouldThrowSegmentationError;
+}
+
+int setMemoryAccesses()
+{
+	return BASE_MEMORY_ACCESSES + ( (rand() % ACCESSES_VARIATION) * (rand() % 1 == 1) ? -1 : 1);
+}
+
+int shouldEnd()
+{
+	int shouldEnd;
+	if ( rand() % MAX_PERCENT < PERCENT_END )
+		shouldEnd = 1;
+
+	return shouldEnd;
 }
 
 int findProcessInPcb(pid_t pid)
