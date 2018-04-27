@@ -1,6 +1,6 @@
 // IPCUtilities.c
-// CS 4760 Project 4
-// Alex Kane 3/22/2018
+// CS 4760 Project 6
+// Alex Kane 4/26/2018
 // Functions which wrap function of system IPC objects for ease of use
 #include<unistd.h>
 #include<errno.h>

@@ -1,6 +1,6 @@
 // ProcessControlBlock.h
-// CS 4760 Project 4
-// Alex Kane 3/22/2018
+// CS 4760 Project 6
+// Alex Kane 4/26/2018
 // Declaration of ProcessControlBlock struct which is used to store information about
 // child processes of oss.  Declared so that it can be included in both user and oss
 // easily
@@ -43,6 +43,9 @@ typedef struct {
 
 	// Total number of pages for process
 	int NumberOfPages;
+
+	// Number of times this process tries to access memory
+	int NumberOfMemoyAccesses;
 } ProcessControlBlock;
 
 #endif

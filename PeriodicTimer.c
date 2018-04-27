@@ -1,6 +1,6 @@
 // PeriodicTimer.c
-// CS 4760 Project 4
-// Alex Kane 3/22/2018
+// CS 4760 Project 6
+// Alex Kane 4/26/2018
 // Function from robbins textbook which will send SIGALRM to process 
 // from which it is called after a set time
 #include<signal.h>

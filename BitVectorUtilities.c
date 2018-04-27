@@ -1,3 +1,7 @@
+// BitVectors.c
+// CS 4760 Project 6
+// Alex Kane 4/19/2018
+// Utility functions for operations on vectors of bits (stored as ints)
 #include"BitVectorUtilities.h"
 
 // These functions will help to interact with an array of integers which is accessed as a bit vector

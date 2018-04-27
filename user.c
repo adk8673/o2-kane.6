@@ -68,6 +68,7 @@ int shouldSegment();
 
 int main(int argc, char** argv)
 {
+	srand(time(0) * getpid());
 	processName = argv[0];
 
 	// I've added this as a failsafe - oss should have ended and deallocated at this point, killing any
@@ -85,6 +86,7 @@ int main(int argc, char** argv)
 
 void executeUser()
 {
+	// buffers used to handle signalling on semaphore
 	struct sembuf semsignal[1];
 	semsignal[0].sem_num = 0;
 	semsignal[0].sem_op = 1;
@@ -109,16 +111,20 @@ void executeUser()
 
 	int numAccesses = setMemoryAccesses();
 	int endUser = 0;
+
+	// Main user loop
+	printf("Process ID: %d Max memory: %d\n", getpid(), maxMemoryAddress);
 	while ( endUser != 1 )
 	{
 		int requestedMemoryAddress;
 		if ( shouldSegment() == 1 )
 			requestedMemoryAddress = maxMemoryAddress + (rand() % ADDRESS_OVERAGE);
 		else
-			requestedMemoryAddress = (rand() % maxMemoryAddress) + 1;
+			requestedMemoryAddress = (rand() % maxMemoryAddress);
 
 		snprintf(requestMsg.mtext, 50, "%d", requestedMemoryAddress);
 
+		// Check to see if we're going to write to this memory
 		int isWrite = 0;
 		if ( rand() % MAX_PERCENT < PERCENT_WRITE )
 			isWrite = 1;
@@ -131,6 +137,7 @@ void executeUser()
 		if ( semop(semidCritical, semsignal, 1) == -1 )
 			writeError("Failed to signal for critical section exit\n", processName);
 
+		// send request to oss for memory
 		if ( msgsnd(msgIdRequest, &requestMsg, sizeof(requestMsg), 0) == -1 )
 			writeError("Failed to send request to oss\n", processName);
 
@@ -141,6 +148,7 @@ void executeUser()
 
 		if ( response == 1 )
 		{
+			// Value was in memory so just continue
 			--numAccesses;
 
 			if ( numAccesses <= 0 )
@@ -153,13 +161,15 @@ void executeUser()
 		}
 		else if ( response == 0 )
 		{
+			// address is valid but not in memroy - so wait until swapped in
 			int valueInMemory = 0;
 			while ( valueInMemory != 1 )
 			{
 				if ( semop(semidCritical, semwait, 1) == -1 )
 					writeError("Failed to wait for critical section entry\n", processName);
 
-				if ( pcb[pcbIndex].BlockedOnPage == 0 )
+				// no longer waiting
+				if ( pcb[pcbIndex].BlockedOnPage == -1 )
 					valueInMemory = 1;
 
 				if ( semop(semidCritical, semsignal, 1) == -1 )
@@ -177,7 +187,7 @@ void executeUser()
 		}
 		else if ( response == -1 )
 		{
-			printf("user over\n");
+			endUser = 1;
 		}
 	}
 
@@ -188,8 +198,11 @@ int shouldSegment()
 {
 	int shouldThrowSegmentationError = 0;
 
-	if ( (rand() % MAX_PERCENT) + 100000 < PERCENT_SEGMENT )
+	int chance =  (rand() % MAX_SEGMENT) + 1 ;
+	if ( chance < PERCENT_SEGMENT)
+	{
 		shouldThrowSegmentationError = 1;
+	}
 
 	return shouldThrowSegmentationError;
 }

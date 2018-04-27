@@ -1,0 +1,15 @@
+Project 6
+Alex Kane
+CS4760
+Fall 2018
+
+This project includes two executables oss and user.  Oss can be invoked from the command line using the syntax ./oss. It will spawn off user children, up to a max, and then grant requests from them
+for memory access.  
+A log is kept in the file oss.log (up to a maximum number of files)
+The option -n can be used to specifiy a maxmimum number of children (it can't exceed the value of MAX_PROCESSES defined in constants)
+The option -h can be used to display help information.
+
+Issues: In order to display the full range of behaviors, I used slightly different constant values for time intervals and number of frames.  Some of the stats also appear to be rounded off when displayed.
+
+Source control was used.  The project is hosted at github.  The commit logs can be seen at:
+https://github.com/adk8673/o2-kane.6/commits/master
